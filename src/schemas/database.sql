@@ -4,7 +4,7 @@ COLLATE utf8mb4_unicode_ci;
 
 USE alquilar_db;
 
-CREATE TABLE propiedades (
+CREATE TABLE propiedades IF NOT EXISTS (
     id_propiedad INT AUTO_INCREMENT PRIMARY KEY,
 
     titulo VARCHAR(150) NOT NULL,
@@ -47,19 +47,14 @@ CREATE TABLE propiedades (
     CHECK (superficie_cubierta IS NULL OR superficie_cubierta > 0)
 );
 
-CREATE TABLE publicaciones (
+CREATE TABLE publicaciones IF NOT EXISTS (
     id_publicacion INT AUTO_INCREMENT PRIMARY KEY,
-
     id_propiedad INT NOT NULL,
-
     tipo_operacion ENUM('venta', 'alquiler')
         NOT NULL,
-
     precio DECIMAL(15,2) NOT NULL,
-
     moneda ENUM('ARS', 'USD')
         NOT NULL DEFAULT 'ARS',
-
     estado ENUM(
         'borrador',
         'publicada',
@@ -88,17 +83,11 @@ CREATE TABLE publicaciones (
 
 CREATE TABLE propiedad_imagenes (
     id_imagen INT AUTO_INCREMENT PRIMARY KEY,
-
     id_propiedad INT NOT NULL,
-
     ruta_archivo VARCHAR(500) NOT NULL,
-
     nombre_original VARCHAR(255),
-
     es_portada BOOLEAN NOT NULL DEFAULT FALSE,
-
     orden INT UNSIGNED NOT NULL DEFAULT 0,
-
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT fk_imagen_propiedad
@@ -108,94 +97,6 @@ CREATE TABLE propiedad_imagenes (
 
     INDEX idx_imagen_propiedad (id_propiedad)
 );
-
-INSERT INTO propiedades (
-    titulo,
-    descripcion,
-    tipo,
-    direccion,
-    ciudad,
-    provincia,
-    habitaciones,
-    banios,
-    superficie_total,
-    superficie_cubierta,
-    cochera,
-    balcon,
-    patio,
-    piscina
-)
-VALUES
-(
-    'Departamento moderno en Barrio Norte',
-    'Departamento de dos dormitorios con balcón.',
-    'departamento',
-    'Muñecas 850',
-    'San Miguel de Tucumán',
-    'Tucumán',
-    2, 1, 85, 75,
-    FALSE, TRUE, FALSE, FALSE
-),
-(
-    'Casa familiar con patio',
-    'Casa de tres dormitorios, cochera y patio amplio.',
-    'casa',
-    'Av. Mate de Luna 2400',
-    'San Miguel de Tucumán',
-    'Tucumán',
-    3, 2, 240, 170,
-    TRUE, FALSE, TRUE, FALSE
-),
-(
-    'Terreno residencial',
-    'Terreno apto para construcción de vivienda.',
-    'terreno',
-    'Zona Yerba Buena',
-    'Yerba Buena',
-    'Tucumán',
-    0, 0, 450, NULL,
-    FALSE, FALSE, FALSE, FALSE
-);
-
-INSERT INTO publicaciones (
-    id_propiedad,
-    tipo_operacion,
-    precio,
-    moneda,
-    estado,
-    fecha_publicacion
-)
-VALUES
-(
-    1,
-    'alquiler',
-    650000,
-    'ARS',
-    'publicada',
-    NOW()
-),
-(
-    2,
-    'venta',
-    145000,
-    'USD',
-    'publicada',
-    NOW()
-);
-
-SELECT
-    p.id_propiedad,
-    p.titulo,
-    p.tipo,
-    p.ciudad,
-    pub.tipo_operacion,
-    pub.precio,
-    pub.moneda,
-    pub.estado AS estado_publicacion
-FROM propiedades p
-LEFT JOIN publicaciones pub
-    ON pub.id_propiedad = p.id_propiedad
-ORDER BY p.id_propiedad;
 
 CREATE TABLE IF NOT EXISTS usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
@@ -307,3 +208,91 @@ CREATE TABLE IF NOT EXISTS usuario_propiedades (
             OR fecha_fin >= fecha_inicio
         )
 );
+
+INSERT INTO propiedades (
+    titulo,
+    descripcion,
+    tipo,
+    direccion,
+    ciudad,
+    provincia,
+    habitaciones,
+    banios,
+    superficie_total,
+    superficie_cubierta,
+    cochera,
+    balcon,
+    patio,
+    piscina
+)
+VALUES
+(
+    'Departamento moderno en Barrio Norte',
+    'Departamento de dos dormitorios con balcón.',
+    'departamento',
+    'Muñecas 850',
+    'San Miguel de Tucumán',
+    'Tucumán',
+    2, 1, 85, 75,
+    FALSE, TRUE, FALSE, FALSE
+),
+(
+    'Casa familiar con patio',
+    'Casa de tres dormitorios, cochera y patio amplio.',
+    'casa',
+    'Av. Mate de Luna 2400',
+    'San Miguel de Tucumán',
+    'Tucumán',
+    3, 2, 240, 170,
+    TRUE, FALSE, TRUE, FALSE
+),
+(
+    'Terreno residencial',
+    'Terreno apto para construcción de vivienda.',
+    'terreno',
+    'Zona Yerba Buena',
+    'Yerba Buena',
+    'Tucumán',
+    0, 0, 450, NULL,
+    FALSE, FALSE, FALSE, FALSE
+);
+
+INSERT INTO publicaciones (
+    id_propiedad,
+    tipo_operacion,
+    precio,
+    moneda,
+    estado,
+    fecha_publicacion
+)
+VALUES
+(
+    1,
+    'alquiler',
+    650000,
+    'ARS',
+    'publicada',
+    NOW()
+),
+(
+    2,
+    'venta',
+    145000,
+    'USD',
+    'publicada',
+    NOW()
+);
+
+SELECT
+    p.id_propiedad,
+    p.titulo,
+    p.tipo,
+    p.ciudad,
+    pub.tipo_operacion,
+    pub.precio,
+    pub.moneda,
+    pub.estado AS estado_publicacion
+FROM propiedades p
+LEFT JOIN publicaciones pub
+    ON pub.id_propiedad = p.id_propiedad
+ORDER BY p.id_propiedad;
