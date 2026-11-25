@@ -196,3 +196,114 @@ FROM propiedades p
 LEFT JOIN publicaciones pub
     ON pub.id_propiedad = p.id_propiedad
 ORDER BY p.id_propiedad;
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+
+    telefono VARCHAR(30),
+
+    estado ENUM('activo', 'inactivo', 'bloqueado')
+        NOT NULL DEFAULT 'activo',
+
+    ultimo_acceso DATETIME DEFAULT NULL,
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS roles (
+    id_rol INT AUTO_INCREMENT PRIMARY KEY,
+
+    nombre VARCHAR(50) NOT NULL UNIQUE,
+    descripcion VARCHAR(255),
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+INSERT INTO roles (nombre, descripcion)
+VALUES
+(
+    'admin_sistema',
+    'Administrador general del sistema'
+),
+(
+    'admin_consorcio',
+    'Administrador de consorcios asignados'
+),
+(
+    'residente',
+    'Propietario o inquilino de una propiedad'
+),
+(
+    'visitante',
+    'Usuario registrado sin vinculacion residencial'
+),
+(
+    'tecnico',
+    'Responsable de atender tickets de refaccion'
+),
+(
+    'admin_inmobiliaria',
+    'Responsable de la gestion comercial inmobiliaria'
+);
+
+CREATE TABLE IF NOT EXISTS usuario_roles (
+    id_usuario INT NOT NULL,
+    id_rol INT NOT NULL,
+
+    fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    PRIMARY KEY (id_usuario, id_rol),
+
+    CONSTRAINT fk_usuario_roles_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE,
+
+    CONSTRAINT fk_usuario_roles_rol
+        FOREIGN KEY (id_rol)
+        REFERENCES roles(id_rol)
+        ON DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS usuario_propiedades (
+    id_usuario_propiedad INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_usuario INT NOT NULL,
+    id_propiedad INT NOT NULL,
+
+    tipo_vinculo ENUM('propietario', 'inquilino')
+        NOT NULL,
+
+    fecha_inicio DATE NOT NULL,
+    fecha_fin DATE DEFAULT NULL,
+
+    estado ENUM('activo', 'finalizado')
+        NOT NULL DEFAULT 'activo',
+
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_usuario_propiedades_usuario
+        FOREIGN KEY (id_usuario)
+        REFERENCES usuarios(id_usuario)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT fk_usuario_propiedades_propiedad
+        FOREIGN KEY (id_propiedad)
+        REFERENCES propiedades(id_propiedad)
+        ON DELETE RESTRICT,
+
+    CONSTRAINT chk_fechas_vinculo
+        CHECK (
+            fecha_fin IS NULL
+            OR fecha_fin >= fecha_inicio
+        )
+);

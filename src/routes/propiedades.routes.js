@@ -2,7 +2,19 @@
 import { Router } from 'express';
 import * as controller from '../controllers/propiedades.controller.js';
 
+import { autenticar } from '../middlewares/auth.middleware.js';
+import { autorizarRoles } from '../middlewares/roles.middleware.js';
+import { ROLES } from '../config/roles.js';
+
 const router = Router();
+
+router.use(
+    autenticar,
+    autorizarRoles(
+        ROLES.ADMIN_SISTEMA,
+        ROLES.ADMIN_INMOBILIARIA
+    )
+);
 
 router.get('/', controller.listar);
 router.get('/:id', controller.obtener);

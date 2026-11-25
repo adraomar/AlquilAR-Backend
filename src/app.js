@@ -8,21 +8,46 @@ import { fileURLToPath } from 'node:url';
 import propiedadesRoutes from './routes/propiedades.routes.js';
 import publicacionesRoutes from './routes/publicaciones.routes.js';
 import imagenesRoutes from './routes/imagenes.routes.js';
-
-import { catalogo } from './controllers/publicaciones.controller.js';
+import authRoutes from './routes/auth.routes.js';
+import catalogoRoutes from './routes/catalogo.routes.js';
 
 import { errorHandler } from './middlewares/error.middleware.js';
 
 const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
+// Configuración de CORS
+const origenesPermitidos = (
+    process.env.CORS_ORIGINS || 'http://localhost:5173'
+)
+    .split(',')
+    .map(origen => origen.trim());
+
 app.use(cors({
-    origin: 'http://localhost:5173'
+    origin: (origin, callback) => {
+
+        if (!origin || origenesPermitidos.includes(origin)) {
+            return callback(null, true);
+        }
+
+        const error = new Error('Origen no permitido por CORS');
+        error.status = 403;
+
+        return callback(error);
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Middlewares globales
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/uploads', express.static(path.resolve(__dirname, '../uploads')));
+
+// Archivos estáticos
+app.use(
+    '/uploads',
+    express.static(path.resolve(__dirname, '../uploads'))
+);
 
 // Health checks
 app.get('/api/health', (req, res) => {
@@ -35,15 +60,21 @@ app.get('/api/health', (req, res) => {
 // DB health check
 app.get('/api/health/db', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT 1 AS conectado');
+        const [rows] = await pool.query(
+            'SELECT 1 AS conectado'
+        );
 
         res.json({
             success: true,
             database: 'alquilar_db',
             conectado: rows[0].conectado === 1
         });
+
     } catch (error) {
-        console.error('Error de conexión MySQL:', error.message);
+        console.error(
+            'Error de conexión MySQL:',
+            error.message
+        );
 
         res.status(503).json({
             success: false,
@@ -52,10 +83,11 @@ app.get('/api/health/db', async (req, res) => {
     }
 });
 
-// Endpoint Catalogo
-app.get('/api/catalogo', catalogo);
+// Rutas públicas y autenticación
+app.use('/api/catalogo', catalogoRoutes);
+app.use('/api/auth', authRoutes);
 
-// Rutas
+// Rutas administrativas protegidas
 app.use('/api/propiedades', propiedadesRoutes);
 app.use('/api/publicaciones', publicacionesRoutes);
 app.use('/api/propiedades', imagenesRoutes);

@@ -3,6 +3,6 @@ import app from './app.js';
 
 const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
-    console.log(`[SERVER]: El Servidor AlquilAR ejecutandose en el puerto: ${PORT}`)
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Servidor ejecutándose en el puerto ${PORT}`);
 });
