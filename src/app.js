@@ -10,6 +10,7 @@ import publicacionesRoutes from './routes/publicaciones.routes.js';
 import imagenesRoutes from './routes/imagenes.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import catalogoRoutes from './routes/catalogo.routes.js';
+import dashboardRoutes from './routes/dashboard.routes.js';
 
 import { errorHandler } from './middlewares/error.middleware.js';
 
@@ -91,6 +92,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/propiedades', propiedadesRoutes);
 app.use('/api/publicaciones', publicacionesRoutes);
 app.use('/api/propiedades', imagenesRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Rutas no encontradas
 app.use((req, res) => {
