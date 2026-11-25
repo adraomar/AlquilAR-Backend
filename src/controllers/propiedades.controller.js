@@ -2,16 +2,24 @@
 import * as service from '../services/propiedades.service.js';
 
 export const listar = async (req, res, next) => {
+
     try {
-        const propiedades = await service.listarPropiedades();
+
+        const resultado = await service.listarPropiedades(
+            req.query
+        );
 
         res.status(200).json({
             success: true,
-            total: propiedades.length,
-            data: propiedades
+            total: resultado.paginacion.total,
+            data: resultado.propiedades,
+            paginacion: resultado.paginacion
         });
+
     } catch (error) {
+
         next(error);
+
     }
 };
 

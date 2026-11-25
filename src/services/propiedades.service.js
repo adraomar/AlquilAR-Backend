@@ -113,8 +113,68 @@ const validarPropiedad = (datos) => {
     return propiedad;
 };
 
-export const listarPropiedades = async () => {
-    return await model.obtenerTodas();
+export const listarPropiedades = async (query = {}) => {
+
+    const pagina = Number(query.pagina ?? 1);
+    const limite = Number(query.limite ?? 10);
+
+    const estado = query.estado ?? 'todas';
+    const tipo = query.tipo ?? 'todos';
+
+    const busqueda = query.busqueda ?? '';
+
+    const estadosPermitidos = [
+        'todas',
+        'activa',
+        'inactiva'
+    ];
+
+    if (
+        !Number.isSafeInteger(pagina) ||
+        pagina <= 0
+    ) {
+        throw crearError('Número de página inválido');
+    }
+
+    if (
+        !Number.isSafeInteger(limite) ||
+        limite <= 0 ||
+        limite > 100
+    ) {
+        throw crearError(
+            'El límite debe estar entre 1 y 100'
+        );
+    }
+
+    if (!Number.isSafeInteger((pagina - 1) * limite)) {
+        throw crearError('Número de página fuera de rango');
+    }
+
+    if (!estadosPermitidos.includes(estado)) {
+        throw crearError('Estado de propiedad inválido');
+    }
+
+    if (
+        tipo !== 'todos' &&
+        !tiposPermitidos.includes(tipo)
+    ) {
+        throw crearError('Tipo de propiedad inválido');
+    }
+
+    if (
+        typeof busqueda !== 'string' ||
+        busqueda.length > 150
+    ) {
+        throw crearError('Texto de búsqueda inválido');
+    }
+
+    return await model.obtenerTodas({
+        pagina,
+        limite,
+        estado,
+        tipo,
+        busqueda: busqueda.trim()
+    });
 };
 
 export const buscarPropiedad = async (id) => {
